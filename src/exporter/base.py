@@ -13,11 +13,12 @@ class PhotoshopExporterBase:
     Exports layers from all photoshop files in some folder.
     """
 
-    def __init__(self, input_path, *, verbose=None, **kwargs):
+    def __init__(self, input_path,  *,  output_path=None, verbose=None, **kwargs):
         """
         Init.
         """
         self.input_path = input_path
+        self._output_path = output_path
 
     @dataclass
     class Exportable:
@@ -34,6 +35,8 @@ class PhotoshopExporterBase:
 
         The export path.
         """
+        if self._output_path is not None:
+            return self._output_path
         if os.path.isdir(self.input_path):
             return os.path.join(self.input_path, 'exports')
         return os.path.join(os.path.dirname(self.input_path), 'exports')
@@ -64,7 +67,7 @@ class PhotoshopExporterBase:
         psd = PSDImage.open(self.psd_files[0])
         image = psd.composite()
         size = image.size
-        psd.close()
+        # psd.close()
         return size
 
     def export(self):
@@ -83,13 +86,15 @@ class PhotoshopExporterBase:
                 continue
             save_image = Image.new(original_pil.mode, self.image_size, "#00000000")
             save_image.paste(original_pil, x.layer.bbox)
+            # save_image.paste(original_pil, x.layer.viewbox)
             save_image.save(save_path)
             logging.info("Layer saved as %s", x.output_file_name)
         print(f'Saved to {self.output_path}.')
 
     @property
     def layers(self):
-        yield from (PSDImage.open(file_path) for file_path in self.psd_files)
+        for psd_file_path in self.psd_files:
+            yield from (PSDImage.open(psd_file_path))
 
     @property
     def exportables(self):

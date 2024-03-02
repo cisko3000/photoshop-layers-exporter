@@ -3,3 +3,4 @@ imageio==2.22.1
 numpy==1.23.3
 Pillow==9.2.0
 psd-tools==1.9.23
+pytest~=8.0.2
